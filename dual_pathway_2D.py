@@ -47,7 +47,7 @@ input[1] = 1
 # Run paraneters
 LEARING_RATE_RL = 0.1
 LEARNING_RATE_HL = 0.005
-TRIALS = 100000
+TRIALS = 1_00_000
 
 # modes
 HEBBIAN_LEARNING = False
@@ -106,42 +106,69 @@ class Environment:
             self.model.W_hvc_bg += dw_hvc_bg
             # HL update
             dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*self.model.ra*HEBBIAN_LEARNING # lr is supposed to be much smaller here
-            if iter % 1000 == 0:    
+            if iter % (TRIALS/100) == 0:    
                 tqdm.write(f'Iteration: {iter}, Action: {action}, Reward: {reward}, Reward Baseline: {reward_baseline}')     
                 
-    def plot_results(self):
-        # plot rewards 
-        plt.figure()
-        plt.plot(self.rewards)
-        plt.xlabel('Iterations')
-        plt.ylabel('Reward')
-        plt.title('Reward vs Iterations')
-        plt.show()
+    # def plot_results(self):
+    #     # plot rewards 
+    #     plt.figure()
+    #     plt.plot(self.rewards)
+    #     plt.ylim(0, 1)
+    #     plt.xlabel('Iterations')
+    #     plt.ylabel('Reward')
+    #     plt.title('Reward vs Iterations')
+    #     plt.show()
         
-    def plot_trajectory(self):
+    # def plot_trajectory(self):
+    #     x, y = np.linspace(-2, 2, 50), np.linspace(-2, 2, 50)
+    #     X, Y = np.meshgrid(x, y)
+    #     Z = reward_fn([X, Y])
+    #     # Create the contour plot
+    #     plt.style.use('dark_background')
+    #     plt.figure(figsize=(6, 6))
+    #     plt.contour(X, Y, Z, levels=10)
+    #     plt.title('Contour plot of reward function')
+    #     plt.xlabel('x')
+    #     plt.ylabel('y')
+    #     plt.colorbar(label='Reward')
+    #     # Extract x and y coordinates from trajectory
+    #     x_traj, y_traj = zip(*self.actions)
+
+    #     # Plot the trajectory as a line and starting point as a red circle
+    #     plt.plot(x_traj[::10], y_traj[::10], '-b', label='Agent Trajectory')
+    #     plt.scatter(x_traj[0], y_traj[0], c='red', label='Starting Point')  # Plot first point as red circle
+    #     plt.legend()
+    #     plt.show()
+    
+    def plot_results_and_trajectory(self):
+        plt.style.use('dark_background')
+        fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+
+        # Plot rewards
+        axs[0].plot(self.rewards)
+        axs[0].set_ylim(0, 1)
+        axs[0].set_xlabel('Iterations')
+        axs[0].set_ylabel('Reward')
+        axs[0].set_title('Reward vs Iterations')
+
+        # Plot trajectory
         x, y = np.linspace(-2, 2, 50), np.linspace(-2, 2, 50)
         X, Y = np.meshgrid(x, y)
         Z = reward_fn([X, Y])
-        # Create the contour plot
-        plt.style.use('dark_background')
-        plt.figure(figsize=(6, 6))
-        plt.contour(X, Y, Z, levels=10)
-        plt.title('Contour plot of reward function')
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.colorbar(label='Reward')
-        # Extract x and y coordinates from trajectory
+        contour = axs[1].contour(X, Y, Z, levels=10)
+        fig.colorbar(contour, ax=axs[1], label='Reward')
         x_traj, y_traj = zip(*self.actions)
+        axs[1].plot(x_traj[::20], y_traj[::20], '-b', label='Agent Trajectory') # Plot every 20th point for efficiency
+        axs[1].scatter(x_traj[0], y_traj[0], c='red', label='Starting Point')  # Plot first point as red circle
+        axs[1].set_title('Contour plot of reward function')
+        axs[1].set_xlabel('x')
+        axs[1].set_ylabel('y')
+        axs[1].legend()
 
-        # Plot the trajectory as a line and starting point as a red circle
-        plt.plot(x_traj[::10], y_traj[::10], '-b', label='Agent Trajectory')
-        plt.scatter(x_traj[0], y_traj[0], c='red', label='Starting Point')  # Plot first point as red circle
-        plt.legend()
+        plt.tight_layout()
         plt.show()
-        
         
 
 env = Environment(HVC_SIZE, BG_SIZE, RA_SIZE, MC_SIZE)
 env.run(TRIALS, LEARING_RATE_RL, LEARNING_RATE_HL, input)
-env.plot_results()
-env.plot_trajectory()
+env.plot_results_and_trajectory()
