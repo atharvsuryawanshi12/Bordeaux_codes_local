@@ -6,22 +6,14 @@ from functions import *
 '''This model works, not the best, but it does'''
 
 # 2D reward landscapes
+def gaussian(coordinates, height, mean, spread):
+    x, y = coordinates[0], coordinates[1]
+    return height * np.exp(-((x-mean[0])**2 + (y-mean[1])**2)/(2*spread**2))
 def reward_fn(coordinates):
     x, y = coordinates[0], coordinates[1]
     return np.exp(-((x-0.5)**2 + (y+0.2)**2))
 
-# def plot_2D_reward_landscape(reward_fn): #contour plot
-#     x = np.linspace(-2, 2, 50)
-#     y = np.linspace(-2, 2, 50)
-#     X, Y = np.meshgrid(x, y)
-#     Z = reward_fn(X, Y)
-#     fig = plt.figure()
-#     ax = fig.add_subplot(111, projection='3d')
-#     ax.plot_surface(X, Y, Z)
-#     ax.set_xlabel('Action 1')
-#     ax.set_ylabel('Action 2')
-#     ax.set_zlabel('Reward')
-#     plt.show()
+
 
 # layer sizes
 HVC_SIZE = 100
@@ -46,11 +38,11 @@ input[1] = 1
 
 # Run paraneters
 LEARING_RATE_RL = 0.1
-LEARNING_RATE_HL = 0.005
+LEARNING_RATE_HL = 5e-9
 TRIALS = 1_00_000
 
 # modes
-HEBBIAN_LEARNING = False
+HEBBIAN_LEARNING = True
 
 # Model
 class NN:
@@ -106,6 +98,7 @@ class Environment:
             self.model.W_hvc_bg += dw_hvc_bg
             # HL update
             dw_hvc_ra = learning_rate_hl*input_hvc.reshape(self.hvc_size,1)*self.model.ra*HEBBIAN_LEARNING # lr is supposed to be much smaller here
+            self.model.W_hvc_ra += dw_hvc_ra
             if iter % (TRIALS/100) == 0:    
                 tqdm.write(f'Iteration: {iter}, Action: {action}, Reward: {reward}, Reward Baseline: {reward_baseline}')     
                 
